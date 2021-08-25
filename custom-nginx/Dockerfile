@@ -1,29 +1,23 @@
-# This file will optimize the image size by uninstalling all unnecessary components after they've been used.
+# Not familiar with alpine linux but it is apparently much more light weight and great for creating containers
+# alpine size:  15 MB   - way smaller!
+# ubuntu size: 77.8 MB
 
-# bring in ubuntu
-FROM ubuntu:latest
-# port it
+FROM alpine:latest
+
 EXPOSE 80
-# name our file and extension for easy reference
+
 ARG FILENAME="nginx-1.19.2"
 ARG EXTENSION="tar.gz"
-#bring in the nginx source code from online
+
 ADD https://nginx.org/download/${FILENAME}.${EXTENSION} .
 
-# Previously we were running the installs in multiple layers (by using multiple RUN commands)
-# BUT, if we performed install and uninstall in separate commands below, the final image would show the files 
-# as uninstalled, but the install files data would still be trapped in images underneath, and take up size.
-# Each command is a layer and each layer holds its own data.  Deleting data from the aggregate image will not remove
-# data that was installed in a previous layer
-RUN apt-get update && \
-    apt-get install build-essential \ 
-                    libpcre3 \
-                    libpcre3-dev \
-                    zlib1g \
-                    zlib1g-dev \
-                    libssl1.1 \
-                    libssl-dev \
-                    -y && \
+RUN apk add --no-cache pcre zlib && \
+    apk add --no-cache \
+            --virtual .build-deps \
+            build-base \ 
+            pcre-dev \
+            zlib-dev \
+            openssl-dev && \
     tar -xvf ${FILENAME}.${EXTENSION} && rm ${FILENAME}.${EXTENSION} && \
     cd ${FILENAME} && \
     ./configure \
@@ -36,12 +30,6 @@ RUN apt-get update && \
         --with-http_ssl_module && \
     make && make install && \
     cd / && rm -rfv /${FILENAME} && \
-    apt-get remove build-essential \ 
-                    libpcre3-dev \
-                    zlib1g-dev \
-                    libssl-dev \
-                    -y && \
-    apt-get autoremove -y && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    apk del .build-deps
 
 CMD ["nginx", "-g", "daemon off;"]

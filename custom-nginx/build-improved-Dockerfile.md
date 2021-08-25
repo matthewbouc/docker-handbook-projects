@@ -1,6 +1,7 @@
 # This file is the same as build, but introduces ARG which allows us to claim
 # 'variables', thus we can easily adjust filename throughout the file.
 
+
 FROM ubuntu:latest
 
 RUN apt-get update && \
@@ -16,7 +17,7 @@ RUN apt-get update && \
 
 ARG FILENAME="nginx-1.19.2"
 ARG EXTENSION="tar.gz"
-
+# ADD lets us pull in files from the internet, opposed to having the file stored locally
 ADD https://nginx.org/download/${FILENAME}.${EXTENSION} .
 
 RUN tar -xvf ${FILENAME}.${EXTENSION} && rm ${FILENAME}.${EXTENSION}
