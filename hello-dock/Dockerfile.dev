@@ -1,0 +1,18 @@
+# set the base image as node, lts-alpine (light version)
+FROM node:lts-alpine
+# Exose port 3000
+EXPOSE 3000
+# set the user to "node" for security.  Docker default is root user, which is not considered safe!
+USER node
+# create a directory to run the app in
+RUN mkdir -p /home/node/app
+# make the working directory the folder we just created
+WORKDIR /home/node/app
+# copy the package.json file (which contains all the necessary dependencies and scripts) to current working directions
+COPY ./package.json .
+# perform npm install
+RUN npm install
+# copy the rest of the file over to the working directory
+COPY . .
+# command " npm run dev " which runs vite
+CMD [ "npm", "run", "dev" ]
